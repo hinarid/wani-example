@@ -1,0 +1,22 @@
+name: wani-example
+version: 0.1.0.0
+extra-source-files:
+  - README.md
+
+dependencies:
+  - base >= 4.9 && < 5
+  - jsem >= 1.1
+  - nlp-tools >=0.2.0
+  - parserModules
+  - list-t >= 1.0.0.0
+  - text >= 2.0.2
+  - lightblue
+
+executables:
+  wani-example:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N

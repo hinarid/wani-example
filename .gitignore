@@ -1,0 +1,28 @@
+# Stack build artifacts
+.stack-work/
+
+# Cabal build artifacts
+dist/
+dist-newstyle/
+
+# GHC / Stack logs and cache
+*.hi
+*.o
+*.chi
+*.chs.h
+*.dyn_o
+*.dyn_hi
+
+# Executables
+wani-example
+*.exe
+*.out
+
+# macOS metadata files
+.DS_Store
+
+# VSCode / editor configs (optional)
+.vscode/
+.idea/
+*.swp
+*~
