@@ -43,8 +43,9 @@ extra-deps:
     commit: e4bd3783f4e872b8df29538d9219e41f40378363
   - git: https://github.com/morning85/parserModules.git
     commit: 899aae39b8c57866148fb3b19a4ac2f393ffaabd
-  - git: https://github.com/DaisukeBekki/lightblue
-    commit: c617eff6d39015266a3befe905872544e354b787
+  # - git: https://github.com/DaisukeBekki/lightblue
+  #   commit: c617eff6d39015266a3befe905872544e354b787
+  - /Users/daidohinari/blab/mycode/master/lightblue
 
 #
 # extra-deps: []
@@ -72,3 +73,4 @@ extra-deps:
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
+allow-newer: true

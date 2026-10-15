@@ -9,6 +9,7 @@ import qualified Data.Text.Lazy as T
 import qualified Data.Maybe as M
 import qualified ListT as ListT
 import qualified Control.Monad  as Monad
+import System.Environment (getArgs)
 
 data QType = QType
   {label :: T.Text, -- ^ A short textual description of the query.
@@ -18,11 +19,17 @@ data QType = QType
    debugDepth :: Int, -- ^ Maximum depth for displaying or debugging intermediate proof trees.
    mode :: QT.LogicSystem, -- ^ The logical system used for reasoning (e.g., 'QT.Classical' for classical logic).
    query :: U.ProofSearchQuery -- ^ The actual proof search query to be evaluated.
-  }deriving (Show,Eq)
+  }deriving (Show)
 
 
 questions :: [QType]
-questions = [q1,q2,q3,q4,q5,q6,q7,q8]
+questions = [q1,q2,q3,q4,q5,q6,q7]
+
+disjQuestions :: [QType]
+disjQuestions = [q8,q9,q10,q11]
+
+enumQuestions :: [QType]
+enumQuestions = []
 
 defaultQ :: QType
 defaultQ = QType{
@@ -105,7 +112,7 @@ q6 =
     maxDepth = 20
     mode = QT.Classical
     label = "q6 pars with DNE"  
-  in defaultQ{label = label,predicted=predicted,maxDepth=maxDepth,query=U.ProofSearchQuery sigEnv varEnv pre_type}
+  in defaultQ{label = label,predicted=predicted,maxDepth=maxDepth,mode=mode,query=U.ProofSearchQuery sigEnv varEnv pre_type}
 
 
 q7 :: QType
@@ -134,15 +141,61 @@ q8 =
     label = "q8 A professor or an assistant professor will attend the meeting of the university board. [She] will report to the faculy."
   in defaultQ{label = label,predicted=predicted,maxDepth=maxDepth,query=U.ProofSearchQuery sigEnv varEnv pre_type}
 
+q9 :: QType
+q9 = 
+  let
+    sigEnv = [("holiday", U.Type), ("customer", U.Pi U.Entity U.Type), ("comeIn", U.Pi U.Entity U.Type), ("serve", U.Pi U.Entity U.Type)]
+    varEnv = [
+        U.Disj (U.Con "holiday") (U.Sigma U.Entity (U.App (U.Con "customer") (U.Var 0))),
+        U.Pi (U.Con "holiday") U.Bot
+      ]
+    pre_type = U.Sigma U.Entity (U.App (U.Con "customer") (U.Var 0))
+    predicted = True
+    maxDepth = 9
+    label = "q9 Rothschild's (2017) puzzle: Either it's a holiday or a customer comes in, [The customer] ..."
+  in defaultQ{label = label, predicted = predicted, maxDepth = maxDepth, query = U.ProofSearchQuery sigEnv varEnv pre_type}
+
+q10 :: QType
+q10 = 
+  let
+    sigEnv = [("human", U.Pi U.Entity U.Type), ("prof", U.Pi U.Entity U.Type), ("aProf", U.Pi U.Entity U.Type), ("wAtM", U.Pi U.Entity U.Type)]
+    varEnv = [
+        U.Disj (U.Sigma (U.Sigma U.Entity (U.App (U.Con "prof") (U.Var 0))) (U.App (U.Con "wAtM") (U.Proj U.Fst (U.Var 0)))) 
+               (U.Sigma (U.Sigma U.Entity (U.App (U.Con "aProf") (U.Var 0))) (U.App (U.Con "wAtM") (U.Proj U.Fst (U.Var 0))))
+      ]
+    pre_type = U.Sigma U.Entity (U.App (U.Con "wAtM") (U.Var 0))
+    predicted = True
+    maxDepth = 9
+    label = "q10 A professor or an assistant professor will attend the meeting. [They] attended the meeting."
+  in defaultQ{label = label, predicted = predicted, maxDepth = maxDepth, query = U.ProofSearchQuery sigEnv varEnv pre_type}
+
+q11 :: QType
+q11 = 
+  let
+    sigEnv = [("human", U.Pi U.Entity U.Type), ("prof", U.Pi U.Entity U.Type), ("aProf", U.Pi U.Entity U.Type), ("wAtM", U.Pi U.Entity U.Type)]
+    varEnv = [
+        U.Disj (U.Sigma (U.Sigma U.Entity (U.App (U.Con "prof") (U.Var 0))) (U.App (U.Con "wAtM") (U.Proj U.Fst (U.Var 0)))) 
+               (U.Sigma (U.Sigma U.Entity (U.App (U.Con "aProf") (U.Var 0))) (U.App (U.Con "wAtM") (U.Proj U.Fst (U.Var 0))))
+      ]
+    pre_type = U.Sigma U.Entity (U.App (U.Con "report") (U.Var 0))
+    predicted = False
+    maxDepth = 9
+    label = "q11 Control experiment for q10 (Unentailed predicate: report)"
+  in defaultQ{label = label, predicted = predicted, maxDepth = maxDepth, query = U.ProofSearchQuery sigEnv varEnv pre_type}
 
 qn :: QType
 qn =  defaultQ{query=undefined}
 
 main :: IO ()
 main = do
+  args <- getArgs
   let setting = QT.ProofSearchSetting{QT.maxDepth=Just 5,QT.maxTime=Just 300000,QT.logicSystem=Just QT.Classical,QT.oracle=M.Nothing}
-  -- results <- ListT.toList $ Wani.prove' setting query1
-  results <- Monad.forM questions $ (\q -> do
+      runDisj = "disj" `elem` args || "all" `elem` args
+      runEnum = "enum" `elem` args || "all" `elem` args
+      activeTests = questions
+                 ++ (if runDisj then disjQuestions else [])
+                 ++ (if runEnum then enumQuestions else [])
+  results <- Monad.forM activeTests $ (\q -> do
       isNull <- ListT.null $ Wani.prove' setting{QT.maxTime= Just (maxTime q),QT.maxDepth=Just (maxDepth q),QT.logicSystem=Just (mode q)} (query q)
       return $ ((label q),(predicted q) == not isNull)) 
   putStrLn "wani-example: testing lightblue imports"
