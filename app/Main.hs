@@ -189,7 +189,7 @@ qn =  defaultQ{query=undefined}
 main :: IO ()
 main = do
   args <- getArgs
-  let setting = QT.ProofSearchSetting{QT.maxDepth=Just 5,QT.maxTime=Just 300000,QT.logicSystem=Just QT.Classical,QT.oracle=M.Nothing}
+  let setting = QT.ProofSearchSetting{QT.maxDepth=Just 5,QT.maxTime=Just 300000,QT.logicSystem=Just QT.Classical,QT.oracle=M.Nothing,QT.enableEquality=True}
       runDisj = "disj" `elem` args || "all" `elem` args
       runEnum = "enum" `elem` args || "all" `elem` args
       activeTests = questions
